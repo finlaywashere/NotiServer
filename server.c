@@ -41,7 +41,7 @@ int main(){
 		}
 		char buffer[strlen(PASSCODE)];
 		bzero(buffer,strlen(PASSCODE));
-		read(consocket,buffer,strlen(PASSCODE));
+		read(consocket,&buffer,strlen(PASSCODE));
 		if(strcmp(buffer,PASSCODE) != 0){
 			printf("wrong");
 			close(consocket);
@@ -51,11 +51,11 @@ int main(){
 		
 		char buffer2[1];
 		bzero(buffer2,1);
-		read(consocket,buffer2,1);
-		if(buffer2[0] == 0){
+		read(consocket,&buffer2,1);
+		if(buffer2[0] == 'a'){
 			char buffer3[MAX_NOTIFICATION_SIZE];
 			bzero(buffer3,MAX_NOTIFICATION_SIZE);
-			read(consocket,buffer3,MAX_NOTIFICATION_SIZE);
+			read(consocket,&buffer3,MAX_NOTIFICATION_SIZE);
 			char flag = 0;
 			for(int i = 0; MAX_NOTIFICATION_QUEUE; i++){
 				if(strcmp(notifications[i],"")){
@@ -78,9 +78,9 @@ int main(){
 		}else{
 			for(int i = 0; i < MAX_NOTIFICATION_QUEUE; i++){
 				char *slot = notifications[i];
-				if(strcmp(slot,"")) break;
 				send(consocket,slot,MAX_NOTIFICATION_SIZE,0);
 				send(consocket,"\n",1,0);
+				bzero(&notifications[i],MAX_NOTIFICATION_SIZE);
 			}
 		}
 		close(consocket);
