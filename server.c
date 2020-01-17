@@ -57,11 +57,10 @@ int main(){
 			bzero(buffer3,MAX_NOTIFICATION_SIZE);
 			read(consocket,&buffer3,MAX_NOTIFICATION_SIZE);
 			char flag = 0;
-			for(int i = 0; MAX_NOTIFICATION_QUEUE; i++){
-				if(strcmp(notifications[i],"")){
+			for(int i = 0; i < MAX_NOTIFICATION_QUEUE; i++){
+				if(strcmp(notifications[i],"") == 0){
 					// Found an empty slot
-					char* slot = notifications[i];
-					memcpy(&slot,&buffer3,MAX_NOTIFICATION_SIZE);
+					memcpy(&notifications[i],&buffer3,MAX_NOTIFICATION_SIZE);
 					flag = 1;
 					break;
 				}
