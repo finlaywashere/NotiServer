@@ -10,5 +10,6 @@ fi
 cp notiserver.pam /etc/pam.d/notiserver
 cp server.o /usr/bin/notiserver
 cp notiserver.service /usr/lib/systemd/system/
+mkdir -p /etc/notiserver/
 
 echo "Installed Notiserver! To use it start/enable notiserver.service!"
