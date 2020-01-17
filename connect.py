@@ -1,15 +1,20 @@
 #!/bin/env python3
 import socket
 import ssl
+import getpass
 
 port = 4598
-password = "@&asuysl*9712jayts$7"
-
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 ssl_socket = ssl.wrap_socket(s,ssl_version=ssl.PROTOCOL_TLS);
 ssl_socket.connect((input("IP: "),port))
 
-ssl_socket.send(bytes(password+'\n\n','utf-8'))
+username = input("Username: ")
+ssl_socket.send(bytes([len(username)]))
+ssl_socket.send(bytes(username,"utf-8"))
+
+password = getpass.getpass("Password: ")
+ssl_socket.send(bytes([len(password)]))
+ssl_socket.send(bytes(password,'utf-8'))
 todo = input("what to do? a/v")
 ssl_socket.send(bytes(todo,'utf-8'))
 if todo == "a":

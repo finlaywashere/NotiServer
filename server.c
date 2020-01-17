@@ -9,6 +9,7 @@
 #include <errno.h>
 #include "openssl/ssl.h"
 #include "openssl/err.h"
+#include <security/pam_appl.h>
 
 #define PORTNUM 4598
 #define PASSCODE "@&asuysl*9712jayts$7"
@@ -43,6 +44,53 @@ int loadCertificates(SSL_CTX* ctx, char* certFile, char* keyFile){
 	}
 	return 0;
 }
+struct pam_response *reply;
+/**
+ * Supposed to get input from the user but we don't want that
+ */
+int function_conversation(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr){  
+	*resp = reply;  
+	return PAM_SUCCESS;  
+}  
+
+int authenticate(char *user, char* passwd){
+	const struct pam_conv local_conversation = { function_conversation, NULL };  
+	pam_handle_t *local_auth_handle = NULL; // this gets set by pam_start  
+
+	int retval;  
+	retval = pam_start("notiserver", user, &local_conversation, &local_auth_handle);  
+
+	if (retval != PAM_SUCCESS) {  
+	        printf("pam_start returned: %d\n ", retval);  
+	        return 1;
+	}  
+
+	reply = (struct pam_response *)malloc(sizeof(struct pam_response));  
+
+	reply[0].resp = strdup(passwd);  
+	reply[0].resp_retcode = 0;  
+	retval = pam_authenticate(local_auth_handle, 0);  
+
+	if (retval != PAM_SUCCESS) {  
+	        if (retval == PAM_AUTH_ERR)  {  
+	                printf("Authentication failure.\n");  
+	   	}  
+	        else  {  
+	            printf("pam_authenticate returned %d\n", retval);  
+	        }  
+	        return 1;
+	}  
+
+	printf("Authenticated.\n");  
+	retval = pam_end(local_auth_handle, retval);  
+
+	if (retval != PAM_SUCCESS)  {  
+		printf("pam_end returned\n");  
+		return 1;  
+	}  
+
+	return 0;
+}
 void handleConnection(SSL *ssl, char** notifications){
 	// Accept ssl connection
 	if(!SSL_accept(ssl)){
@@ -50,19 +98,31 @@ void handleConnection(SSL *ssl, char** notifications){
 		return;
 	}
 
-	char *buffer[strlen(PASSCODE)];
-	bzero(buffer,strlen(PASSCODE));
-	SSL_read(ssl,&buffer,strlen(PASSCODE));
-	int diff = strcmp(&buffer,PASSCODE);
-	if(diff != 0){
-		printf("wrong");
+	char *buffer[1];
+	bzero(buffer,1);
+	SSL_read(ssl,&buffer,1);
+	
+	int unameSize = buffer[0];
+	char *buffer4[unameSize];
+	bzero(buffer4,unameSize);
+	SSL_read(ssl,&buffer4,unameSize);
+
+	bzero(buffer,1);
+	SSL_read(ssl,&buffer,1);
+	int passwdSize = buffer[0];
+	char *buffer5[passwdSize];
+	bzero(buffer5,passwdSize);
+	SSL_read(ssl,&buffer5,passwdSize);
+
+	int authResult = authenticate(buffer4,buffer5);
+	if(authResult != 0){
+		printf("Rejected credentials for user %s with code %d",buffer4,authResult);
 		int sd = SSL_get_fd(ssl);
 		SSL_free(ssl);
 		close(sd);
 		return;
 	}
-	SSL_read(ssl,buffer,2);
-	
+
 	char buffer2[1];
 	bzero(buffer2,1);
 	SSL_read(ssl,&buffer2,1);
@@ -135,7 +195,7 @@ int main(int count, char** args){
 		struct sockaddr_in dest;
 		int consocket = accept(mysocket,(struct sockaddr *)&dest,&socksize);
 		if(consocket < 0){
-		       	int err = errno;
+			   	int err = errno;
 			printf("%d\n",err);
 			continue;
 		}
