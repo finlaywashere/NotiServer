@@ -1,6 +1,10 @@
 #!/bin/bash
-if [ "$EUID" -ne 0 ] then
+if [ "$EUID" -ne 0 ]; then
 	echo "Please run as root"
+	exit
+fi
+if [ ! -f "server.o" ]; then
+	echo "You need to run build.sh first!"
 	exit
 fi
 cp notiserver.pam /etc/pam.d/notiserver
