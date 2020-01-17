@@ -6,7 +6,7 @@ NotiServer is intended to be a lightweight server to manage sending notification
 
 ## Building
 
-To build NotiServer simply run `build.sh`
+To build NotiServer simply run `make`
 
 ## Installing
 

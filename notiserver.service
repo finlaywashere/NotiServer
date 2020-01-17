@@ -1,8 +1,0 @@
-[Unit]
-Description="Notiserver server daemon"
-
-[Service]
-ExecStart=/usr/bin/notiserver /etc/notiserver/cert.pem /etc/notiserver/key.pem
-
-[Install]
-WantedBy=multi-user.target

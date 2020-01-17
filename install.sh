@@ -8,7 +8,7 @@ if [ ! -f "server.o" ]; then
 	exit
 fi
 cp notiserver.pam /etc/pam.d/notiserver
-cp server.o /usr/bin/notiserver
+cp notiserver /usr/bin/notiserver
 cp notiserver.service /usr/lib/systemd/system/
 mkdir -p /etc/notiserver/
 
